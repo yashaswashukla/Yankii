@@ -11,7 +11,11 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
   },
-  "keywords": ["vocabulary", "srs", "learning"],
+  "keywords": [
+    "vocabulary",
+    "srs",
+    "learning"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
