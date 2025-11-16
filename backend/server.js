@@ -19,7 +19,7 @@ app.use("/api/words", wordRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", message: "Vocabulary SRS API is running" });
+  res.json({ status: "ok", message: "Yankii API is running" });
 });
 
 // Error handling middleware
