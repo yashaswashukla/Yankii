@@ -34,6 +34,10 @@ const Review = () => {
     }
   };
 
+  const titleCase = (word) => {
+    return word.charAt(0).toUpperCase() + word.slice(1);
+  };
+
   const handleQualityRating = async (quality) => {
     if (!currentWord || reviewing) return;
 
@@ -120,7 +124,7 @@ const Review = () => {
             {!showAnswer ? (
               <div>
                 <div className="text-4xl md:text-5xl font-bold text-indigo-500 dark:text-indigo-400 mb-8">
-                  {currentWord.word}
+                  {titleCase(currentWord.word)}
                 </div>
                 <p className="text-gray-600 dark:text-gray-400 text-base">
                   Click to reveal
@@ -129,6 +133,9 @@ const Review = () => {
             ) : (
               <div className="w-full text-left space-y-6">
                 <div>
+                  <h2 className="text-2xl font-bold mb-4 text-indigo-500 dark:text-indigo-400">
+                    {titleCase(currentWord.word)}
+                  </h2>
                   <h3 className="text-xl font-semibold mb-2 text-indigo-500 dark:text-indigo-400">
                     Meaning:
                   </h3>
@@ -181,10 +188,10 @@ const Review = () => {
                   onClick={() => handleQualityRating(option.value)}
                   className={`p-4 rounded-lg border-2 transition-all hover:-translate-y-0.5 hover:shadow-md font-medium disabled:opacity-50 disabled:cursor-not-allowed ${
                     option.value <= 1
-                      ? "border-red-500 text-red-500 hover:bg-red-500 hover:text-black dark:hover:text-black"
+                      ? "border-red-500 text-red-500 hover:bg-red-500 dark:hover:bg-red-500 hover:text-black"
                       : option.value <= 3
-                      ? "border-amber-500 text-amber-500 hover:bg-amber-500 hover:text-black dark:hover:text-black"
-                      : "border-green-500 text-green-500 hover:bg-green-500 hover:text-black dark:hover:text-black"
+                      ? "border-amber-500 text-amber-500 hover:bg-amber-500 dark:hover:bg-amber-500 hover:text-black"
+                      : "border-green-500 text-green-500 hover:bg-green-500 dark:hover:bg-green-500 hover:text-black"
                   } bg-white dark:bg-zinc-950`}
                   disabled={reviewing}
                 >
