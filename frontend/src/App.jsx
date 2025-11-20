@@ -14,6 +14,7 @@ import Dashboard from "./pages/Dashboard";
 import AddWord from "./pages/AddWord";
 import Review from "./pages/Review";
 import WordList from "./pages/WordList";
+import Settings from "./pages/Settings";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -86,6 +87,14 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <WordList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Settings />
               </ProtectedRoute>
             }
           />

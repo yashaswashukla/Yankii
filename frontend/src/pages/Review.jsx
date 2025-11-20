@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { wordAPI } from "../api/api";
+import { wordAPI } from "../api/api-old";
 
 const Review = () => {
   const [currentWord, setCurrentWord] = useState(null);

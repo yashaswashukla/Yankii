@@ -58,6 +58,12 @@ const Navbar = () => {
                 >
                   My Words
                 </Link>
+                <Link
+                  to="/settings"
+                  className="text-gray-600 dark:text-gray-400 hover:text-indigo-500 dark:hover:text-indigo-400 font-medium transition-colors"
+                >
+                  ⚙️
+                </Link>
                 <button
                   onClick={toggleDarkMode}
                   className="border-2 border-gray-200 dark:border-zinc-700 rounded-full p-2 hover:border-indigo-500 dark:hover:border-indigo-400 transition-all hover:rotate-180 flex items-center justify-center w-10 h-10 text-xl"
@@ -141,6 +147,13 @@ const Navbar = () => {
                   className="text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-900 py-3 px-4 rounded-lg text-center font-medium transition-colors"
                 >
                   My Words
+                </Link>
+                <Link
+                  to="/settings"
+                  onClick={closeMobileMenu}
+                  className="text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-zinc-900 py-3 px-4 rounded-lg text-center font-medium transition-colors"
+                >
+                  ⚙️ Settings
                 </Link>
                 <button
                   onClick={toggleDarkMode}
