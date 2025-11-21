@@ -72,6 +72,8 @@ export const wordAPI = {
   reviewWord: (id, quality) => api.post(`/words/review/${id}`, { quality }),
   deleteWord: (id) => api.delete(`/words/${id}`),
   getStats: () => api.get("/words/stats"),
+  migrateWords: () => api.post("/words/migrate"),
+  updateWordFields: (id) => api.post(`/words/update-fields/${id}`),
 };
 
 export default api;

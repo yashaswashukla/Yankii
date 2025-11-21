@@ -6,10 +6,19 @@ const WordList = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [deleting, setDeleting] = useState(null);
+  const [expandedCard, setExpandedCard] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     fetchWords();
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  const checkMobile = () => {
+    setIsMobile(window.innerWidth < 768);
+  };
 
   const fetchWords = async (searchQuery = "") => {
     setLoading(true);
@@ -52,47 +61,61 @@ const WordList = () => {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays < 0) {
-      return `${Math.abs(diffDays)} day${
-        Math.abs(diffDays) !== 1 ? "s" : ""
-      } overdue`;
+      return `${Math.abs(diffDays)}d overdue`;
     } else if (diffDays === 0) {
       return "Due today";
     } else {
-      return `In ${diffDays} day${diffDays !== 1 ? "s" : ""}`;
+      return `In ${diffDays}d`;
     }
   };
 
-  return (
-    <div className="container py-4">
-      <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
-        <h1 className="mb-4">My Vocabulary</h1>
+  const toggleCard = (id) => {
+    if (isMobile) {
+      setExpandedCard(expandedCard === id ? null : id);
+    }
+  };
 
-        <div className="card mb-4">
+  const isExpanded = (id) => {
+    return !isMobile || expandedCard === id;
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-4 max-w-7xl">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">
+          My Vocabulary
+        </h1>
+
+        <div className="bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-xl p-4 shadow-sm mb-6">
           <form onSubmit={handleSearch}>
-            <div style={{ display: "flex", gap: "1rem" }}>
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
               <input
                 type="text"
-                className="form-input"
-                placeholder="Search by word, meaning, or synonym..."
+                className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-zinc-700 rounded-lg text-base transition-all bg-white dark:bg-zinc-950 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                placeholder="Search words..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                style={{ flex: 1 }}
               />
-              <button type="submit" className="btn btn-primary">
-                🔍 Search
-              </button>
-              {search && (
+              <div className="flex gap-2">
                 <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => {
-                    setSearch("");
-                    fetchWords("");
-                  }}
+                  type="submit"
+                  className="bg-indigo-500 hover:bg-indigo-600 text-black font-medium px-4 py-2.5 rounded-lg transition-all text-sm"
                 >
-                  Clear
+                  🔍
                 </button>
-              )}
+                {search && (
+                  <button
+                    type="button"
+                    className="bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-zinc-800 font-medium px-4 py-2.5 rounded-lg transition-all text-sm"
+                    onClick={() => {
+                      setSearch("");
+                      fetchWords("");
+                    }}
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
             </div>
           </form>
         </div>
@@ -100,22 +123,19 @@ const WordList = () => {
         {loading ? (
           <div className="spinner"></div>
         ) : words.length === 0 ? (
-          <div className="card text-center">
-            <h3 style={{ marginBottom: "1rem" }}>
+          <div className="bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-xl p-12 shadow-sm text-center">
+            <h3 className="text-2xl font-semibold mb-3 text-gray-900 dark:text-gray-100">
               {search ? "No words found" : "No words yet"}
             </h3>
-            <p
-              style={{ color: "var(--text-secondary)", marginBottom: "1.5rem" }}
-            >
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
               {search
                 ? "Try a different search term"
-                : "Start building your vocabulary by adding words!"}
+                : "Start building your vocabulary!"}
             </p>
             {!search && (
               <a
                 href="/add"
-                className="btn btn-primary"
-                style={{ display: "inline-flex" }}
+                className="inline-flex items-center justify-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-black font-medium px-6 py-3 rounded-lg transition-all"
               >
                 ➕ Add Your First Word
               </a>
@@ -123,71 +143,122 @@ const WordList = () => {
           </div>
         ) : (
           <div>
-            <p style={{ marginBottom: "1rem", color: "var(--text-secondary)" }}>
-              Found {words.length} word{words.length !== 1 ? "s" : ""}
+            <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+              {words.length} word{words.length !== 1 ? "s" : ""}
             </p>
-            <div className="word-grid">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {words.map((word) => (
-                <div key={word.id} className="word-item">
-                  <div className="word-header">
-                    <h3 className="word-title">{word.word}</h3>
-                    <button
-                      onClick={() => handleDelete(word.id)}
-                      className="btn btn-danger btn-sm"
-                      disabled={deleting === word.id}
-                      style={{ flexShrink: 0 }}
-                    >
-                      {deleting === word.id ? "Deleting..." : "🗑️ Delete"}
-                    </button>
-                  </div>
-
-                  <p className="word-meaning">{word.meaning}</p>
-
-                  <div className="word-synonyms">
-                    {word.synonyms.map((synonym, index) => (
-                      <span key={index} className="synonym-tag">
-                        {synonym}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="word-example">{word.usageExample}</div>
-
+                <div
+                  key={word.id}
+                  className="bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden transition-all hover:border-indigo-500 hover:shadow-md hover:-translate-y-0.5 flex flex-col"
+                >
                   <div
-                    style={{
-                      marginTop: "1rem",
-                      paddingTop: "1rem",
-                      borderTop: "1px solid var(--border-color)",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "0.875rem",
-                      color: "var(--text-secondary)",
-                      flexWrap: "wrap",
-                      gap: "0.5rem",
-                    }}
+                    className={`p-5 ${
+                      isMobile ? "cursor-pointer select-none" : ""
+                    }`}
+                    onClick={() => toggleCard(word.id)}
                   >
-                    <div>
-                      <strong>Reviews:</strong> {word.repetitions}
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="text-2xl font-semibold text-indigo-500 dark:text-indigo-400">
+                        {word.word}
+                      </h3>
+                      {isMobile && (
+                        <span className="text-gray-500 dark:text-gray-400 text-base transition-transform">
+                          {isExpanded(word.id) ? "▼" : "▶"}
+                        </span>
+                      )}
                     </div>
-                    <div>
-                      <strong>Interval:</strong> {word.interval} day
-                      {word.interval !== 1 ? "s" : ""}
-                    </div>
-                    <div>
-                      <strong>Next Review:</strong>{" "}
-                      <span
-                        style={{
-                          color:
-                            new Date(word.nextReviewDate) <= new Date()
-                              ? "var(--danger-color)"
-                              : "var(--success-color)",
-                          fontWeight: "600",
-                        }}
-                      >
-                        {formatDate(word.nextReviewDate)}
-                      </span>
-                    </div>
+                    {!isExpanded(word.id) && (
+                      <p className="text-gray-900 dark:text-gray-100 text-sm line-clamp-2">
+                        {word.meaning}
+                      </p>
+                    )}
                   </div>
+
+                  {isExpanded(word.id) && (
+                    <div className="px-5 pb-5 border-t border-gray-200 dark:border-zinc-800 slide-down flex-1 flex flex-col">
+                      <div className="mt-4">
+                        <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
+                          Meaning
+                        </h4>
+                        <p className="text-gray-900 dark:text-gray-100 leading-relaxed text-sm">
+                          {word.meaning}
+                        </p>
+                      </div>
+
+                      <div className="mt-4">
+                        <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
+                          Synonyms
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {word.synonyms.map((synonym, index) => (
+                            <span
+                              key={index}
+                              className="bg-gray-100 dark:bg-zinc-900 text-gray-600 dark:text-gray-400 px-3 py-1.5 rounded-full text-xs border border-gray-200 dark:border-zinc-700 transition-all hover:border-indigo-500 hover:text-indigo-500"
+                            >
+                              {synonym}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="mt-4">
+                        <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
+                          Example
+                        </h4>
+                        <div className="italic text-gray-600 dark:text-gray-400 p-3.5 bg-gray-50 dark:bg-black rounded-lg border-l-4 border-indigo-500 text-sm leading-relaxed">
+                          {word.usageExample}
+                        </div>
+                      </div>
+
+                      <div className="mt-4">
+                        <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
+                          Progress
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="flex flex-col md:flex-col gap-1">
+                            <span className="text-xs text-gray-600 dark:text-gray-400">
+                              Reviews:
+                            </span>
+                            <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                              {word.repetitions}
+                            </span>
+                          </div>
+                          <div className="flex flex-col md:flex-col gap-1">
+                            <span className="text-xs text-gray-600 dark:text-gray-400">
+                              Interval:
+                            </span>
+                            <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                              {word.interval} day
+                              {word.interval !== 1 ? "s" : ""}
+                            </span>
+                          </div>
+                          <div className="flex flex-col md:flex-col gap-1">
+                            <span className="text-xs text-gray-600 dark:text-gray-400">
+                              Next Review:
+                            </span>
+                            <span
+                              className={`text-lg font-semibold ${
+                                new Date(word.nextReviewDate) <= new Date()
+                                  ? "text-red-500"
+                                  : "text-green-500"
+                              }`}
+                            >
+                              {formatDate(word.nextReviewDate)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleDelete(word.id)}
+                        className="mt-4 w-full bg-red-500 hover:bg-red-600 text-black font-medium py-2.5 px-4 rounded-lg transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={deleting === word.id}
+                      >
+                        {deleting === word.id ? "Deleting..." : "🗑️ Delete"}
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

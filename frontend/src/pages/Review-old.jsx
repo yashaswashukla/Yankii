@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { wordAPI } from "../api/api";
-import PronunciationButton from "../components/PronunciationButton";
+import { wordAPI } from "../api/api-old";
 
 const Review = () => {
   const [currentWord, setCurrentWord] = useState(null);
@@ -124,12 +123,9 @@ const Review = () => {
           >
             {!showAnswer ? (
               <div>
-                <div className="text-4xl md:text-5xl font-bold text-indigo-500 dark:text-indigo-400 mb-4">
+                <div className="text-4xl md:text-5xl font-bold text-indigo-500 dark:text-indigo-400 mb-8">
                   {titleCase(currentWord.word)}
                 </div>
-
-                {/* Pronunciation button on flashcard front */}
-
                 <p className="text-gray-600 dark:text-gray-400 text-base">
                   Click to reveal
                 </p>
@@ -137,16 +133,9 @@ const Review = () => {
             ) : (
               <div className="w-full text-left space-y-6">
                 <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <h2 className="text-2xl font-bold text-indigo-500 dark:text-indigo-400">
-                      {titleCase(currentWord.word)}
-                    </h2>
-                    <PronunciationButton
-                      word={currentWord.word}
-                      audioUrl={currentWord.audioUrl}
-                      phonetic={currentWord.phonetic}
-                    />
-                  </div>{" "}
+                  <h2 className="text-2xl font-bold mb-4 text-indigo-500 dark:text-indigo-400">
+                    {titleCase(currentWord.word)}
+                  </h2>
                   <h3 className="text-xl font-semibold mb-2 text-indigo-500 dark:text-indigo-400">
                     Meaning:
                   </h3>
@@ -163,31 +152,13 @@ const Review = () => {
                     {currentWord.synonyms.map((synonym, index) => (
                       <span
                         key={index}
-                        className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-full text-sm border border-green-200 dark:border-green-900/40"
+                        className="bg-gray-100 dark:bg-zinc-900 text-gray-600 dark:text-gray-400 px-3 py-1.5 rounded-full text-sm border border-gray-200 dark:border-zinc-700"
                       >
                         {synonym}
                       </span>
                     ))}
                   </div>
                 </div>
-
-                {currentWord.antonyms && currentWord.antonyms.length > 0 && (
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2 text-indigo-500 dark:text-indigo-400">
-                      Antonyms:
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {currentWord.antonyms.map((antonym, index) => (
-                        <span
-                          key={index}
-                          className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-full text-sm border border-red-200 dark:border-red-900/40"
-                        >
-                          {antonym}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
                 <div>
                   <h3 className="text-xl font-semibold mb-2 text-indigo-500 dark:text-indigo-400">

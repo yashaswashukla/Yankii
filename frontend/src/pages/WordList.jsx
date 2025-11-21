@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { wordAPI } from "../api/api";
+import PronunciationButton from "../components/PronunciationButton";
 
 const WordList = () => {
   const [words, setWords] = useState([]);
@@ -8,6 +9,7 @@ const WordList = () => {
   const [deleting, setDeleting] = useState(null);
   const [expandedCard, setExpandedCard] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [updating, setUpdating] = useState(null);
 
   useEffect(() => {
     fetchWords();
@@ -54,6 +56,22 @@ const WordList = () => {
     }
   };
 
+  const handleUpdateWord = async (id) => {
+    setUpdating(id);
+    try {
+      const response = await wordAPI.updateWordFields(id);
+      // Update the word in the list
+      setWords(words.map(word => 
+        word.id === id ? response.data.word : word
+      ));
+    } catch (error) {
+      console.error("Error updating word:", error);
+      alert("Failed to update word. Please try again.");
+    } finally {
+      setUpdating(null);
+    }
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -77,6 +95,10 @@ const WordList = () => {
 
   const isExpanded = (id) => {
     return !isMobile || expandedCard === id;
+  };
+
+  const needsUpdate = (word) => {
+    return !word.antonyms || word.antonyms.length === 0 || !word.phonetic;
   };
 
   return (
@@ -158,12 +180,19 @@ const WordList = () => {
                     }`}
                     onClick={() => toggleCard(word.id)}
                   >
-                    <div className="flex justify-between items-center mb-2">
-                      <h3 className="text-2xl font-semibold text-indigo-500 dark:text-indigo-400">
-                        {word.word}
-                      </h3>
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-2xl font-semibold text-indigo-500 dark:text-indigo-400">
+                          {word.word}
+                        </h3>
+                        <PronunciationButton 
+                          word={word.word}
+                          audioUrl={word.audioUrl}
+                          phonetic={word.phonetic}
+                        />
+                      </div>
                       {isMobile && (
-                        <span className="text-gray-500 dark:text-gray-400 text-base transition-transform">
+                        <span className="text-gray-500 dark:text-gray-400 text-base transition-transform ml-2">
                           {isExpanded(word.id) ? "▼" : "▶"}
                         </span>
                       )}
@@ -194,11 +223,33 @@ const WordList = () => {
                           {word.synonyms.map((synonym, index) => (
                             <span
                               key={index}
-                              className="bg-gray-100 dark:bg-zinc-900 text-gray-600 dark:text-gray-400 px-3 py-1.5 rounded-full text-xs border border-gray-200 dark:border-zinc-700 transition-all hover:border-indigo-500 hover:text-indigo-500"
+                              className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-full text-xs border border-green-200 dark:border-green-900/40 transition-all hover:border-green-500"
                             >
                               {synonym}
                             </span>
                           ))}
+                        </div>
+                      </div>
+
+                      <div className="mt-4">
+                        <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
+                          Antonyms
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {word.antonyms && word.antonyms.length > 0 ? (
+                            word.antonyms.map((antonym, index) => (
+                              <span
+                                key={index}
+                                className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-full text-xs border border-red-200 dark:border-red-900/40 transition-all hover:border-red-500"
+                              >
+                                {antonym}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-gray-400 dark:text-gray-500 text-xs italic">
+                              Not available
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -215,8 +266,8 @@ const WordList = () => {
                         <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
                           Progress
                         </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div className="flex flex-col md:flex-col gap-1">
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="flex flex-col gap-1">
                             <span className="text-xs text-gray-600 dark:text-gray-400">
                               Reviews:
                             </span>
@@ -224,18 +275,17 @@ const WordList = () => {
                               {word.repetitions}
                             </span>
                           </div>
-                          <div className="flex flex-col md:flex-col gap-1">
+                          <div className="flex flex-col gap-1">
                             <span className="text-xs text-gray-600 dark:text-gray-400">
                               Interval:
                             </span>
                             <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                              {word.interval} day
-                              {word.interval !== 1 ? "s" : ""}
+                              {word.interval}d
                             </span>
                           </div>
-                          <div className="flex flex-col md:flex-col gap-1">
+                          <div className="flex flex-col gap-1">
                             <span className="text-xs text-gray-600 dark:text-gray-400">
-                              Next Review:
+                              Next:
                             </span>
                             <span
                               className={`text-lg font-semibold ${
@@ -250,13 +300,24 @@ const WordList = () => {
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => handleDelete(word.id)}
-                        className="mt-4 w-full bg-red-500 hover:bg-red-600 text-black font-medium py-2.5 px-4 rounded-lg transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={deleting === word.id}
-                      >
-                        {deleting === word.id ? "Deleting..." : "🗑️ Delete"}
-                      </button>
+                      <div className="mt-4 flex flex-col gap-2">
+                        {needsUpdate(word) && (
+                          <button
+                            onClick={() => handleUpdateWord(word.id)}
+                            className="w-full bg-amber-500 hover:bg-amber-600 text-black font-medium py-2.5 px-4 rounded-lg transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={updating === word.id}
+                          >
+                            {updating === word.id ? "Updating..." : "🔄 Add Antonyms & Pronunciation"}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDelete(word.id)}
+                          className="w-full bg-red-500 hover:bg-red-600 text-black font-medium py-2.5 px-4 rounded-lg transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={deleting === word.id}
+                        >
+                          {deleting === word.id ? "Deleting..." : "🗑️ Delete"}
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>

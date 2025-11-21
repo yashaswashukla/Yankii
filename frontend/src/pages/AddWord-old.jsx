@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { wordAPI } from "../api/api";
-import PronunciationButton from "../components/PronunciationButton";
 
 const AddWord = () => {
   const [word, setWord] = useState("");
@@ -67,8 +66,8 @@ const AddWord = () => {
                   autoFocus
                 />
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                  Our AI will automatically fetch the meaning, synonyms, antonyms,
-                  pronunciation, and usage example
+                  Our AI will automatically fetch the meaning, synonyms, and
+                  usage example
                 </p>
               </div>
 
@@ -104,17 +103,9 @@ const AddWord = () => {
 
             {wordData && (
               <div className="bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
-                {/* Word title with pronunciation */}
-                <div className="flex items-center gap-3 mb-6 flex-wrap">
-                  <h2 className="text-3xl font-bold text-indigo-500 dark:text-indigo-400">
-                    {wordData.word}
-                  </h2>
-                  <PronunciationButton 
-                    word={wordData.word}
-                    audioUrl={wordData.audioUrl}
-                    phonetic={wordData.phonetic}
-                  />
-                </div>
+                <h2 className="text-3xl font-bold text-indigo-500 dark:text-indigo-400 mb-6">
+                  {wordData.word}
+                </h2>
 
                 <div className="mb-6">
                   <h3 className="text-base font-semibold mb-2 text-gray-900 dark:text-gray-100">
@@ -133,33 +124,11 @@ const AddWord = () => {
                     {wordData.synonyms.map((synonym, index) => (
                       <span
                         key={index}
-                        className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-full text-sm border border-green-200 dark:border-green-900/40"
+                        className="bg-gray-100 dark:bg-zinc-900 text-gray-600 dark:text-gray-400 px-3 py-1.5 rounded-full text-sm border border-gray-200 dark:border-zinc-700"
                       >
                         {synonym}
                       </span>
                     ))}
-                  </div>
-                </div>
-
-                <div className="mb-6">
-                  <h3 className="text-base font-semibold mb-2 text-gray-900 dark:text-gray-100">
-                    Antonyms:
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {wordData.antonyms && wordData.antonyms.length > 0 ? (
-                      wordData.antonyms.map((antonym, index) => (
-                        <span
-                          key={index}
-                          className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-full text-sm border border-red-200 dark:border-red-900/40"
-                        >
-                          {antonym}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-gray-500 dark:text-gray-400 text-sm">
-                        No antonyms available
-                      </span>
-                    )}
                   </div>
                 </div>
 
