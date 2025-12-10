@@ -37,7 +37,7 @@ async function fetchPronunciation(word) {
 
 export async function getWordInfo(word) {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
     const prompt = `Provide detailed standard information about the word "${word}" in the following JSON format. Only respond with valid JSON, no additional text:
 

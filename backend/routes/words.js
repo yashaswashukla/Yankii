@@ -275,7 +275,11 @@ router.post("/migrate", async (req, res) => {
     };
 
     // Update each word (with delay to avoid rate limiting)
+    let i = 0;
     for (const word of wordsToUpdate) {
+      if (i % 10 == 0)
+        await new Promise((resolve) => setTimeout(resolve, 60000));
+      i++;
       try {
         const updateInfo = await getWordUpdateInfo(word.word);
 
@@ -287,7 +291,7 @@ router.post("/migrate", async (req, res) => {
             audioUrl: updateInfo.audioUrl,
           },
         });
-
+        console.log(`Updated word: ${word.word}`);
         results.updated++;
 
         // Small delay to avoid rate limiting
