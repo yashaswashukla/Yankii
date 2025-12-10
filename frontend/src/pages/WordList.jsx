@@ -10,6 +10,8 @@ const WordList = () => {
   const [expandedCard, setExpandedCard] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [updating, setUpdating] = useState(null);
+  const [addingWord, setAddingWord] = useState(null);
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     fetchWords();
@@ -60,7 +62,6 @@ const WordList = () => {
     setUpdating(id);
     try {
       const response = await wordAPI.updateWordFields(id);
-      // Update the word in the list
       setWords(words.map(word => 
         word.id === id ? response.data.word : word
       ));
@@ -69,6 +70,27 @@ const WordList = () => {
       alert("Failed to update word. Please try again.");
     } finally {
       setUpdating(null);
+    }
+  };
+
+  const handleAddRelatedWord = async (relatedWord) => {
+    setAddingWord(relatedWord);
+    setNotification(null);
+
+    try {
+      await wordAPI.addWord(relatedWord);
+      setNotification({ type: 'success', message: `"${relatedWord}" added to your vocabulary!` });
+      // Refresh word list to show the new word
+      await fetchWords(search);
+    } catch (err) {
+      if (err.response?.data?.error?.includes('already exists')) {
+        setNotification({ type: 'info', message: `"${relatedWord}" is already in your vocabulary` });
+      } else {
+        setNotification({ type: 'error', message: `Failed to add "${relatedWord}"` });
+      }
+    } finally {
+      setAddingWord(null);
+      setTimeout(() => setNotification(null), 3000);
     }
   };
 
@@ -107,6 +129,19 @@ const WordList = () => {
         <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">
           My Vocabulary
         </h1>
+
+        {/* Notification Toast */}
+        {notification && (
+          <div className={`mb-4 px-4 py-3 rounded-lg text-sm border ${
+            notification.type === 'success' 
+              ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-200 dark:border-green-900/40'
+              : notification.type === 'info'
+              ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900/40'
+              : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/40'
+          }`}>
+            {notification.message}
+          </div>
+        )}
 
         <div className="bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-xl p-4 shadow-sm mb-6">
           <form onSubmit={handleSearch}>
@@ -218,15 +253,21 @@ const WordList = () => {
                       <div className="mt-4">
                         <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
                           Synonyms
+                          <span className="text-xs font-normal text-gray-500 dark:text-gray-400 ml-1 lowercase">
+                            (click to add)
+                          </span>
                         </h4>
                         <div className="flex flex-wrap gap-2">
                           {word.synonyms.map((synonym, index) => (
-                            <span
+                            <button
                               key={index}
-                              className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-full text-xs border border-green-200 dark:border-green-900/40 transition-all hover:border-green-500"
+                              onClick={() => handleAddRelatedWord(synonym)}
+                              disabled={addingWord === synonym}
+                              className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-full text-xs border border-green-200 dark:border-green-900/40 hover:bg-green-100 dark:hover:bg-green-900/30 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-wait"
+                              title={`Click to add "${synonym}"`}
                             >
-                              {synonym}
-                            </span>
+                              {addingWord === synonym ? '⏳' : '+'} {synonym}
+                            </button>
                           ))}
                         </div>
                       </div>
@@ -234,16 +275,22 @@ const WordList = () => {
                       <div className="mt-4">
                         <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
                           Antonyms
+                          <span className="text-xs font-normal text-gray-500 dark:text-gray-400 ml-1 lowercase">
+                            (click to add)
+                          </span>
                         </h4>
                         <div className="flex flex-wrap gap-2">
                           {word.antonyms && word.antonyms.length > 0 ? (
                             word.antonyms.map((antonym, index) => (
-                              <span
+                              <button
                                 key={index}
-                                className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-full text-xs border border-red-200 dark:border-red-900/40 transition-all hover:border-red-500"
+                                onClick={() => handleAddRelatedWord(antonym)}
+                                disabled={addingWord === antonym}
+                                className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-full text-xs border border-red-200 dark:border-red-900/40 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-wait"
+                                title={`Click to add "${antonym}"`}
                               >
-                                {antonym}
-                              </span>
+                                {addingWord === antonym ? '⏳' : '+'} {antonym}
+                              </button>
                             ))
                           ) : (
                             <span className="text-gray-400 dark:text-gray-500 text-xs italic">

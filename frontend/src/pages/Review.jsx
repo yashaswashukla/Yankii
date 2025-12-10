@@ -9,6 +9,8 @@ const Review = () => {
   const [loading, setLoading] = useState(true);
   const [reviewing, setReviewing] = useState(false);
   const [message, setMessage] = useState("");
+  const [addingWord, setAddingWord] = useState(null);
+  const [notification, setNotification] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,6 +21,7 @@ const Review = () => {
     setLoading(true);
     setShowAnswer(false);
     setMessage("");
+    setNotification(null);
     try {
       const response = await wordAPI.getNextWord();
       if (response.data.word) {
@@ -51,6 +54,26 @@ const Review = () => {
       setMessage("Failed to submit review. Please try again.");
     } finally {
       setReviewing(false);
+    }
+  };
+
+  const handleAddRelatedWord = async (relatedWord, e) => {
+    e.stopPropagation(); // Prevent card click
+    setAddingWord(relatedWord);
+    setNotification(null);
+
+    try {
+      await wordAPI.addWord(relatedWord);
+      setNotification({ type: 'success', message: `"${relatedWord}" added!` });
+    } catch (err) {
+      if (err.response?.data?.error?.includes('already exists')) {
+        setNotification({ type: 'info', message: `"${relatedWord}" already in list` });
+      } else {
+        setNotification({ type: 'error', message: `Failed to add "${relatedWord}"` });
+      }
+    } finally {
+      setAddingWord(null);
+      setTimeout(() => setNotification(null), 2500);
     }
   };
 
@@ -109,6 +132,19 @@ const Review = () => {
           Review Session
         </h1>
 
+        {/* Notification Toast */}
+        {notification && (
+          <div className={`mb-4 px-4 py-2 rounded-lg text-sm border text-center ${
+            notification.type === 'success' 
+              ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-200 dark:border-green-900/40'
+              : notification.type === 'info'
+              ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900/40'
+              : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/40'
+          }`}>
+            {notification.message}
+          </div>
+        )}
+
         {message && (
           <div className="bg-red-50 dark:bg-red-900/20 text-red-500 border border-red-200 dark:border-red-900/40 px-4 py-3 rounded-lg mb-6 text-sm">
             {message}
@@ -124,12 +160,10 @@ const Review = () => {
           >
             {!showAnswer ? (
               <div>
-                <div className="text-4xl md:text-5xl font-bold text-indigo-500 dark:text-indigo-400 mb-4">
+                <div className="text-4xl md:text-5xl font-bold text-indigo-500 dark:text-indigo-400 mb-8">
                   {titleCase(currentWord.word)}
                 </div>
-
-                {/* Pronunciation button on flashcard front */}
-
+                
                 <p className="text-gray-600 dark:text-gray-400 text-base">
                   Click to reveal
                 </p>
@@ -141,12 +175,12 @@ const Review = () => {
                     <h2 className="text-2xl font-bold text-indigo-500 dark:text-indigo-400">
                       {titleCase(currentWord.word)}
                     </h2>
-                    <PronunciationButton
+                    <PronunciationButton 
                       word={currentWord.word}
                       audioUrl={currentWord.audioUrl}
                       phonetic={currentWord.phonetic}
                     />
-                  </div>{" "}
+                  </div>
                   <h3 className="text-xl font-semibold mb-2 text-indigo-500 dark:text-indigo-400">
                     Meaning:
                   </h3>
@@ -158,15 +192,21 @@ const Review = () => {
                 <div>
                   <h3 className="text-xl font-semibold mb-2 text-indigo-500 dark:text-indigo-400">
                     Synonyms:
+                    <span className="text-xs font-normal text-gray-500 dark:text-gray-400 ml-2">
+                      (click to add)
+                    </span>
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {currentWord.synonyms.map((synonym, index) => (
-                      <span
+                      <button
                         key={index}
-                        className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-full text-sm border border-green-200 dark:border-green-900/40"
+                        onClick={(e) => handleAddRelatedWord(synonym, e)}
+                        disabled={addingWord === synonym}
+                        className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-full text-sm border border-green-200 dark:border-green-900/40 hover:bg-green-100 dark:hover:bg-green-900/30 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-wait"
+                        title={`Click to add "${synonym}"`}
                       >
-                        {synonym}
-                      </span>
+                        {addingWord === synonym ? '⏳' : '+'} {synonym}
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -175,15 +215,21 @@ const Review = () => {
                   <div>
                     <h3 className="text-xl font-semibold mb-2 text-indigo-500 dark:text-indigo-400">
                       Antonyms:
+                      <span className="text-xs font-normal text-gray-500 dark:text-gray-400 ml-2">
+                        (click to add)
+                      </span>
                     </h3>
                     <div className="flex flex-wrap gap-2">
                       {currentWord.antonyms.map((antonym, index) => (
-                        <span
+                        <button
                           key={index}
-                          className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-full text-sm border border-red-200 dark:border-red-900/40"
+                          onClick={(e) => handleAddRelatedWord(antonym, e)}
+                          disabled={addingWord === antonym}
+                          className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-full text-sm border border-red-200 dark:border-red-900/40 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-wait"
+                          title={`Click to add "${antonym}"`}
                         >
-                          {antonym}
-                        </span>
+                          {addingWord === antonym ? '⏳' : '+'} {antonym}
+                        </button>
                       ))}
                     </div>
                   </div>

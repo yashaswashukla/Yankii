@@ -9,6 +9,8 @@ const AddWord = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [wordData, setWordData] = useState(null);
+  const [addingWord, setAddingWord] = useState(null);
+  const [notification, setNotification] = useState(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -43,12 +45,45 @@ const AddWord = () => {
     setWord("");
   };
 
+  const handleAddRelatedWord = async (relatedWord) => {
+    setAddingWord(relatedWord);
+    setNotification(null);
+
+    try {
+      await wordAPI.addWord(relatedWord);
+      setNotification({ type: 'success', message: `"${relatedWord}" added to your vocabulary!` });
+    } catch (err) {
+      if (err.response?.data?.error?.includes('already exists')) {
+        setNotification({ type: 'info', message: `"${relatedWord}" is already in your vocabulary` });
+      } else {
+        setNotification({ type: 'error', message: `Failed to add "${relatedWord}"` });
+      }
+    } finally {
+      setAddingWord(null);
+      // Clear notification after 3 seconds
+      setTimeout(() => setNotification(null), 3000);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-4 max-w-7xl">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">
           Add New Word
         </h1>
+
+        {/* Notification Toast */}
+        {notification && (
+          <div className={`mb-4 px-4 py-3 rounded-lg text-sm border ${
+            notification.type === 'success' 
+              ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-200 dark:border-green-900/40'
+              : notification.type === 'info'
+              ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-900/40'
+              : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/40'
+          }`}>
+            {notification.message}
+          </div>
+        )}
 
         {!success ? (
           <div className="bg-white dark:bg-zinc-950 border border-gray-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
@@ -128,15 +163,21 @@ const AddWord = () => {
                 <div className="mb-6">
                   <h3 className="text-base font-semibold mb-2 text-gray-900 dark:text-gray-100">
                     Synonyms:
+                    <span className="text-xs font-normal text-gray-500 dark:text-gray-400 ml-2">
+                      (click to add)
+                    </span>
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {wordData.synonyms.map((synonym, index) => (
-                      <span
+                      <button
                         key={index}
-                        className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-full text-sm border border-green-200 dark:border-green-900/40"
+                        onClick={() => handleAddRelatedWord(synonym)}
+                        disabled={addingWord === synonym}
+                        className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-full text-sm border border-green-200 dark:border-green-900/40 hover:bg-green-100 dark:hover:bg-green-900/30 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-wait"
+                        title={`Click to add "${synonym}" to your vocabulary`}
                       >
-                        {synonym}
-                      </span>
+                        {addingWord === synonym ? '⏳' : '+'} {synonym}
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -144,16 +185,22 @@ const AddWord = () => {
                 <div className="mb-6">
                   <h3 className="text-base font-semibold mb-2 text-gray-900 dark:text-gray-100">
                     Antonyms:
+                    <span className="text-xs font-normal text-gray-500 dark:text-gray-400 ml-2">
+                      (click to add)
+                    </span>
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {wordData.antonyms && wordData.antonyms.length > 0 ? (
                       wordData.antonyms.map((antonym, index) => (
-                        <span
+                        <button
                           key={index}
-                          className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-full text-sm border border-red-200 dark:border-red-900/40"
+                          onClick={() => handleAddRelatedWord(antonym)}
+                          disabled={addingWord === antonym}
+                          className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-full text-sm border border-red-200 dark:border-red-900/40 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-wait"
+                          title={`Click to add "${antonym}" to your vocabulary`}
                         >
-                          {antonym}
-                        </span>
+                          {addingWord === antonym ? '⏳' : '+'} {antonym}
+                        </button>
                       ))
                     ) : (
                       <span className="text-gray-500 dark:text-gray-400 text-sm">
