@@ -1,7 +1,9 @@
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { authMiddleware } from "../middleware/auth.js";
-import { getWordInfo, getWordUpdateInfo } from "../services/gemini.js";
+// import { getWordInfo, getWordUpdateInfo } from "../services/gemini.js";
+import { getWordInfo, getWordUpdateInfo } from "../services/groq.js";
+import { getCachedWordInfo } from "../services/wordCache.js";
 import {
   calculateNextReview,
   isDueForReview,
@@ -41,7 +43,17 @@ router.post("/add", async (req, res) => {
     }
 
     // Fetch word information from Gemini API
-    const wordInfo = await getWordInfo(word.trim());
+    // const wordInfo = await getWordInfo(word.trim());
+    // ✅ NEW: Try cache first!
+    const normalizedWord = word.trim().toLowerCase();
+
+    let wordInfo = await getCachedWordInfo(normalizedWord);
+
+    // Only call AI if not in cache
+    if (!wordInfo) {
+      console.log(`🤖 AI call for: "${normalizedWord}"`);
+      wordInfo = await getWordInfo(normalizedWord);
+    }
 
     // Create word with SRS parameters
     const newWord = await prisma.word.create({
@@ -328,7 +340,14 @@ router.post("/update-fields/:id", async (req, res) => {
       return res.status(404).json({ error: "Word not found" });
     }
 
-    const updateInfo = await getWordUpdateInfo(word.word);
+    // const updateInfo = await getWordUpdateInfo(word.word);
+    // ✅ NEW: Try cache first!
+    let updateInfo = await getCachedWordInfo(word.word);
+
+    if (!updateInfo) {
+      console.log(`🤖 AI call for update: "${word.word}"`);
+      updateInfo = await getWordUpdateInfo(word.word);
+    }
 
     const updatedWord = await prisma.word.update({
       where: { id },
