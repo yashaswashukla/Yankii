@@ -59,6 +59,8 @@ api.interceptors.response.use(
 export const authAPI = {
   register: (data) => api.post("/auth/register", data),
   login: (data) => api.post("/auth/login", data),
+  updatePassword: (data) => api.put("/auth/update-password", data),
+  getProfile: () => api.get("/auth/profile"),
 };
 
 // Word APIs

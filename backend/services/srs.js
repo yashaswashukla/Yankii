@@ -1,9 +1,9 @@
 /**
  * SRS (Spaced Repetition System) Algorithm - SM-2 Implementation
- * 
+ *
  * The SM-2 algorithm calculates when a card should be reviewed again
  * based on the user's performance (quality rating 0-5).
- * 
+ *
  * Quality ratings:
  * 0 - Complete blackout
  * 1 - Incorrect response, correct one seemed familiar
@@ -39,8 +39,9 @@ export function calculateNextReview(currentWord, quality) {
 
   // Update ease factor
   // EF' = EF + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02))
-  easeFactor = easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
-  
+  easeFactor =
+    easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+
   // Ease factor should be at least 1.3
   easeFactor = Math.max(1.3, easeFactor);
 
@@ -53,7 +54,7 @@ export function calculateNextReview(currentWord, quality) {
     interval,
     repetitions,
     nextReviewDate,
-    lastReviewed: new Date()
+    lastReviewed: new Date(),
   };
 }
 
@@ -62,7 +63,9 @@ export function calculateNextReview(currentWord, quality) {
  */
 export function isDueForReview(word) {
   const now = new Date();
+  now.setHours(0, 0, 0, 0); // Normalize to start of the day
   const nextReview = new Date(word.nextReviewDate);
+  nextReview.setHours(0, 0, 0, 0); // Normalize to start of the day
   return nextReview <= now;
 }
 
@@ -71,18 +74,18 @@ export function isDueForReview(word) {
  */
 export function sortByPriority(words) {
   const now = new Date();
-  
+
   return words.sort((a, b) => {
     const aDue = new Date(a.nextReviewDate) - now;
     const bDue = new Date(b.nextReviewDate) - now;
-    
+
     // Words past due date come first
     if (aDue < 0 && bDue >= 0) return -1;
     if (bDue < 0 && aDue >= 0) return 1;
-    
+
     // Among past due, earlier dates first
     if (aDue < 0 && bDue < 0) return aDue - bDue;
-    
+
     // Among not due, later dates last
     return aDue - bDue;
   });
